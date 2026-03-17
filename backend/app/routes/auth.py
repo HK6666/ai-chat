@@ -7,7 +7,7 @@ router = APIRouter(prefix="/api/auth", tags=["auth"])
 @router.get("/check")
 async def check_auth():
     """Check if password is required"""
-    return {"required": bool(settings.APP_PASSWORD)}
+    return {"required": bool(settings.APP_PASSWORD), "model": settings.OPENAI_MODEL}
 
 
 @router.post("/verify")

@@ -38,7 +38,7 @@ export async function deleteConversation(id: number): Promise<void> {
   await fetch(`${BASE}/conversations/${id}`, { method: 'DELETE' })
 }
 
-export async function checkAuth(): Promise<{ required: boolean }> {
+export async function checkAuth(): Promise<{ required: boolean; model?: string }> {
   const res = await fetch(`${BASE}/auth/check`)
   return res.json()
 }

@@ -9,7 +9,7 @@ class Settings(BaseSettings):
     APP_PASSWORD: str = ""
     DATABASE_URL: str = "sqlite+aiosqlite:///./chat.db"
 
-    model_config = {"env_file": ".env", "env_file_encoding": "utf-8"}
+    model_config = {"env_file": ["../.env", ".env"], "env_file_encoding": "utf-8"}
 
 
 settings = Settings()

@@ -5,9 +5,10 @@ interface InputBarProps {
   disabled?: boolean
   isStreaming?: boolean
   onStop?: () => void
+  modelName?: string
 }
 
-export default function InputBar({ onSend, disabled = false, isStreaming = false, onStop }: InputBarProps) {
+export default function InputBar({ onSend, disabled = false, isStreaming = false, onStop, modelName }: InputBarProps) {
   const [text, setText] = useState('')
   const textareaRef = useRef<HTMLTextAreaElement>(null)
 
@@ -42,9 +43,15 @@ export default function InputBar({ onSend, disabled = false, isStreaming = false
   }
 
   return (
-    <div className="bg-card border-t border-gray-800 px-4 py-3">
+    <div className="bg-page px-4 py-4">
       <div className="max-w-3xl mx-auto">
-        <div className="flex items-end gap-2 bg-card-light rounded-2xl border border-gray-700/50 focus-within:border-indigo-500/50 transition-colors px-4 py-2">
+        {modelName && (
+          <div className="flex items-center gap-1.5 mb-2 px-1">
+            <span className="w-2 h-2 rounded-full bg-green-400" />
+            <span className="text-xs text-text-tertiary">{modelName}</span>
+          </div>
+        )}
+        <div className="bg-white rounded-2xl border border-border shadow-sm hover:shadow-md focus-within:border-primary/50 transition-all px-4 py-3 flex items-end">
           <textarea
             ref={textareaRef}
             value={text}
@@ -53,18 +60,15 @@ export default function InputBar({ onSend, disabled = false, isStreaming = false
             placeholder="输入消息..."
             disabled={disabled}
             rows={1}
-            className="flex-1 bg-transparent text-gray-100 placeholder-gray-500 resize-none outline-none text-sm leading-6 max-h-36 py-1"
+            className="flex-1 bg-transparent text-text-primary placeholder-text-placeholder resize-none outline-none text-sm leading-6 max-h-36 py-0"
           />
 
           {isStreaming ? (
             <button
               type="button"
               onClick={onStop}
-              className="flex-shrink-0 bg-gray-600 hover:bg-red-600 text-white rounded-xl px-3 py-1.5 text-sm font-medium transition-colors mb-0.5"
+              className="flex-shrink-0 bg-danger/10 text-danger rounded-lg px-3 py-1.5 text-sm font-medium transition-colors hover:bg-danger/20 ml-2"
             >
-              <svg className="w-4 h-4 inline-block mr-1 -mt-0.5" fill="currentColor" viewBox="0 0 16 16">
-                <rect x="3" y="3" width="10" height="10" rx="1" />
-              </svg>
               停止
             </button>
           ) : (
@@ -72,7 +76,7 @@ export default function InputBar({ onSend, disabled = false, isStreaming = false
               type="button"
               onClick={handleSend}
               disabled={!text.trim() || disabled}
-              className="flex-shrink-0 bg-indigo-500 hover:bg-indigo-400 disabled:opacity-30 disabled:cursor-not-allowed text-white rounded-xl p-2 transition-colors mb-0.5"
+              className="flex-shrink-0 w-8 h-8 rounded-lg bg-primary text-white hover:bg-primary-hover disabled:bg-border disabled:text-text-placeholder transition-colors ml-2 flex items-center justify-center"
             >
               <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 10.5 12 3m0 0 7.5 7.5M12 3v18" />

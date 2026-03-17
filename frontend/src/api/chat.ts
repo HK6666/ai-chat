@@ -1,5 +1,7 @@
 interface ChatStreamCallbacks {
+  systemPrompt?: string
   onToken: (token: string) => void
+  onThinking: (token: string) => void
   onDone: (data: { conversation_id: number }) => void
   onError: (error: string) => void
 }
@@ -11,10 +13,18 @@ export function streamChat(
 ): AbortController {
   const controller = new AbortController()
 
+  const body: Record<string, unknown> = {
+    message,
+    conversation_id: conversationId,
+  }
+  if (callbacks.systemPrompt) {
+    body.system_prompt = callbacks.systemPrompt
+  }
+
   fetch('/api/chat', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ message, conversation_id: conversationId }),
+    body: JSON.stringify(body),
     signal: controller.signal,
   })
     .then(async (response) => {
@@ -41,6 +51,7 @@ export function streamChat(
           if (!line.startsWith('data: ')) continue
           try {
             const data = JSON.parse(line.slice(6))
+            if (data.thinking) callbacks.onThinking(data.thinking)
             if (data.token) callbacks.onToken(data.token)
             if (data.done) callbacks.onDone(data)
             if (data.error) callbacks.onError(data.error)

@@ -17,6 +17,7 @@ async def chat(data: dict, db: AsyncSession = Depends(get_db)):
     """SSE streaming chat endpoint"""
     user_message = data.get("message", "").strip()
     conversation_id = data.get("conversation_id")
+    system_prompt = data.get("system_prompt", "")
 
     if not user_message:
         raise HTTPException(status_code=400, detail="消息不能为空")
@@ -27,7 +28,7 @@ async def chat(data: dict, db: AsyncSession = Depends(get_db)):
         if not conv:
             raise HTTPException(status_code=404, detail="会话不存在")
     else:
-        conv = Conversation(title="新对话")
+        conv = Conversation(title="新对话", system_prompt=system_prompt or "")
         db.add(conv)
         await db.flush()
         conversation_id = conv.id
@@ -45,15 +46,17 @@ async def chat(data: dict, db: AsyncSession = Depends(get_db)):
     )
     history = result.scalars().all()
 
-    # Build messages for API
+    # Build messages for API — conversation-level prompt takes priority
     messages = []
-    if settings.SYSTEM_PROMPT:
-        messages.append({"role": "system", "content": settings.SYSTEM_PROMPT})
+    prompt = conv.system_prompt or settings.SYSTEM_PROMPT
+    if prompt:
+        messages.append({"role": "system", "content": prompt})
     for msg in history:
         messages.append({"role": msg.role, "content": msg.content})
 
     async def generate():
         full_response = ""
+        full_thinking = ""
         try:
             async with httpx.AsyncClient(timeout=120.0) as client:
                 async with client.stream(
@@ -80,12 +83,23 @@ async def chat(data: dict, db: AsyncSession = Depends(get_db)):
                             break
                         try:
                             chunk = json.loads(data_str)
-                            delta = chunk.get("choices", [{}])[0].get("delta", {})
+                            choices = chunk.get("choices", [])
+                            if not choices:
+                                continue
+                            delta = choices[0].get("delta", {})
+
+                            # Handle thinking/reasoning tokens
+                            thinking = delta.get("reasoning_content") or delta.get("thinking") or ""
+                            if thinking:
+                                full_thinking += thinking
+                                yield f"data: {json.dumps({'thinking': thinking})}\n\n"
+
+                            # Handle content tokens
                             token = delta.get("content", "")
                             if token:
                                 full_response += token
                                 yield f"data: {json.dumps({'token': token})}\n\n"
-                        except json.JSONDecodeError:
+                        except (json.JSONDecodeError, IndexError, KeyError):
                             continue
         except Exception as e:
             yield f"data: {json.dumps({'error': str(e)})}\n\n"

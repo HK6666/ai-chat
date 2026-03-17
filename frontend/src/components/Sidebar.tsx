@@ -84,34 +84,32 @@ export default function Sidebar({
   }
 
   const sidebarContent = (
-    <div className="flex h-full w-[260px] flex-col border-r border-white/5 bg-card">
+    <div className="flex h-full w-[260px] flex-col border-r border-border bg-white">
       {/* Header */}
       <div className="flex items-center justify-between px-4 pb-2 pt-5">
-        <div className="flex items-center gap-2.5">
-          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary/20">
-            <svg
-              className="h-4.5 w-4.5 text-accent"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            >
-              <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
-              <path d="M8 10h.01" />
-              <path d="M12 10h.01" />
-              <path d="M16 10h.01" />
-            </svg>
-          </div>
-          <h1 className="bg-gradient-to-r from-white to-accent bg-clip-text text-lg font-semibold tracking-tight text-transparent">
-            Family Chat
+        <div className="flex items-center gap-2">
+          <svg
+            className="h-5 w-5 text-primary"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          >
+            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+            <path d="M8 10h.01" />
+            <path d="M12 10h.01" />
+            <path d="M16 10h.01" />
+          </svg>
+          <h1 className="text-lg font-semibold text-text-primary">
+            AI Chat
           </h1>
         </div>
         {/* Mobile close button */}
         <button
           onClick={onClose}
-          className="rounded-lg p-1.5 text-gray-400 transition-colors hover:bg-card-light hover:text-white md:hidden"
+          className="rounded-lg p-1.5 text-text-tertiary transition-colors hover:bg-surface-hover hover:text-text-primary md:hidden"
         >
           <svg className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
             <path d="M18 6 6 18M6 6l12 12" />
@@ -123,7 +121,7 @@ export default function Sidebar({
       <div className="px-3 py-3">
         <button
           onClick={onNew}
-          className="flex w-full items-center justify-center gap-2 rounded-xl bg-primary px-4 py-2.5 text-sm font-medium text-white shadow-lg shadow-primary/20 transition-all duration-200 hover:bg-primary/90 hover:shadow-primary/30 active:scale-[0.98]"
+          className="flex w-full items-center justify-center gap-2 rounded-xl bg-primary px-4 py-2.5 text-sm font-medium text-white shadow-sm transition-all duration-200 hover:bg-primary-hover active:scale-[0.98]"
         >
           <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
             <path d="M12 5v14M5 12h14" />
@@ -136,7 +134,7 @@ export default function Sidebar({
       <div className="flex-1 overflow-y-auto px-2 pb-4 scrollbar-thin">
         {groups.map((group) => (
           <div key={group.label} className="mb-1">
-            <div className="px-2 pb-1 pt-3 text-xs font-medium tracking-wide text-gray-500">
+            <div className="px-3 py-2 text-xs font-medium uppercase tracking-wide text-text-tertiary">
               {group.label}
             </div>
             {group.items.map((conv) => {
@@ -146,10 +144,10 @@ export default function Sidebar({
               return (
                 <div
                   key={conv.id}
-                  className={`group relative mb-0.5 flex cursor-pointer items-center rounded-lg px-2.5 py-2 transition-all duration-150 ${
+                  className={`group relative mb-0.5 flex cursor-pointer items-center rounded-xl px-3 py-2.5 transition-all duration-150 ${
                     isActive
-                      ? 'border-l-2 border-primary bg-card-light'
-                      : 'border-l-2 border-transparent hover:bg-card-light/60'
+                      ? 'bg-primary-light font-medium text-primary'
+                      : 'text-text-primary hover:bg-surface-hover'
                   }`}
                   onClick={() => {
                     if (!isRenaming) onSelect(conv.id)
@@ -166,15 +164,11 @@ export default function Sidebar({
                       }}
                       onBlur={commitRename}
                       onClick={(e) => e.stopPropagation()}
-                      className="w-full rounded-md border border-primary/40 bg-card-light px-2 py-0.5 text-sm text-white outline-none focus:border-primary"
+                      className="w-full rounded-lg border border-primary bg-white px-2 py-0.5 text-sm text-text-primary outline-none ring-1 ring-primary/30 focus:ring-2 focus:ring-primary/40"
                     />
                   ) : (
                     <>
-                      <span
-                        className={`flex-1 truncate text-sm ${
-                          isActive ? 'font-medium text-white' : 'text-gray-300'
-                        }`}
-                      >
+                      <span className="flex-1 truncate text-sm">
                         {conv.title}
                       </span>
                       {/* Action buttons on hover */}
@@ -184,7 +178,7 @@ export default function Sidebar({
                             e.stopPropagation()
                             startRename(conv)
                           }}
-                          className="rounded-md p-1 text-gray-400 transition-colors hover:bg-white/10 hover:text-white"
+                          className="rounded-md p-1 text-text-tertiary transition-colors hover:bg-surface-hover hover:text-text-primary"
                           title="重命名"
                         >
                           <svg
@@ -202,7 +196,7 @@ export default function Sidebar({
                             e.stopPropagation()
                             handleDelete(conv.id)
                           }}
-                          className="rounded-md p-1 text-gray-400 transition-colors hover:bg-red-500/20 hover:text-red-400"
+                          className="rounded-md p-1 text-text-tertiary transition-colors hover:bg-red-50 hover:text-danger"
                           title="删除"
                         >
                           <svg
@@ -226,9 +220,9 @@ export default function Sidebar({
 
         {conversations.length === 0 && (
           <div className="mt-8 flex flex-col items-center px-4 text-center">
-            <div className="mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-card-light">
+            <div className="mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-surface-hover">
               <svg
-                className="h-6 w-6 text-gray-500"
+                className="h-6 w-6 text-text-tertiary"
                 viewBox="0 0 24 24"
                 fill="none"
                 stroke="currentColor"
@@ -237,10 +231,15 @@ export default function Sidebar({
                 <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
               </svg>
             </div>
-            <p className="text-sm text-gray-500">还没有对话</p>
-            <p className="mt-1 text-xs text-gray-600">点击上方按钮开始新对话</p>
+            <p className="text-sm text-text-secondary">还没有对话</p>
+            <p className="mt-1 text-xs text-text-tertiary">点击上方按钮开始新对话</p>
           </div>
         )}
+      </div>
+
+      {/* Bottom divider and spacer */}
+      <div className="border-t border-border-light px-4 py-3">
+        <span className="text-xs text-text-placeholder">AI Chat v1.0</span>
       </div>
     </div>
   )
@@ -256,9 +255,9 @@ export default function Sidebar({
           isOpen ? 'visible' : 'invisible'
         }`}
       >
-        {/* Backdrop */}
+        {/* Backdrop — lighter bg-black/30 */}
         <div
-          className={`absolute inset-0 bg-black/50 transition-opacity duration-300 ${
+          className={`absolute inset-0 bg-black/30 transition-opacity duration-300 ${
             isOpen ? 'opacity-100' : 'opacity-0'
           }`}
           onClick={onClose}

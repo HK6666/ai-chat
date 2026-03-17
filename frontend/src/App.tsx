@@ -11,6 +11,7 @@ import {
 } from './api/client'
 import { streamChat } from './api/chat'
 import type { Conversation, Message } from './types'
+import type { Preset } from './data/presets'
 
 export default function App() {
   // Auth state
@@ -24,12 +25,15 @@ export default function App() {
   const [messages, setMessages] = useState<Message[]>([])
   const [isStreaming, setIsStreaming] = useState(false)
   const [sidebarOpen, setSidebarOpen] = useState(false)
+  const [modelName, setModelName] = useState('')
+  const [activePreset, setActivePreset] = useState<Preset | null>(null)
   const abortRef = useRef<AbortController | null>(null)
 
   // Check auth on mount
   useEffect(() => {
     checkAuth()
-      .then(({ required }) => {
+      .then(({ required, model }) => {
+        if (model) setModelName(model)
         if (!required || localStorage.getItem('chat_auth') === 'true') {
           setAuthed(true)
         } else {
@@ -57,6 +61,7 @@ export default function App() {
   // Select conversation -> load messages
   const handleSelect = async (id: number) => {
     setActiveId(id)
+    setActivePreset(null)
     setSidebarOpen(false)
     try {
       const data = await getConversation(id)
@@ -70,6 +75,7 @@ export default function App() {
   const handleNew = () => {
     setActiveId(null)
     setMessages([])
+    setActivePreset(null)
     setSidebarOpen(false)
   }
 
@@ -89,17 +95,33 @@ export default function App() {
     loadConversations()
   }
 
-  // Send message
+  // Send message — pass system_prompt on first message of new conversation
   const handleSend = (content: string) => {
     if (isStreaming) return
 
-    // Add user message to UI immediately
     const userMsg: Message = { role: 'user', content }
     const assistantMsg: Message = { role: 'assistant', content: '' }
     setMessages((prev) => [...prev, userMsg, assistantMsg])
     setIsStreaming(true)
 
+    // Only send system_prompt when creating a new conversation (no activeId)
+    const systemPrompt = !activeId && activePreset?.prompt ? activePreset.prompt : undefined
+
     const controller = streamChat(content, activeId, {
+      systemPrompt,
+      onThinking: (token) => {
+        setMessages((prev) => {
+          const updated = [...prev]
+          const last = updated[updated.length - 1]
+          if (last && last.role === 'assistant') {
+            updated[updated.length - 1] = {
+              ...last,
+              thinking: (last.thinking || '') + token,
+            }
+          }
+          return updated
+        })
+      },
       onToken: (token) => {
         setMessages((prev) => {
           const updated = [...prev]
@@ -117,7 +139,6 @@ export default function App() {
         setIsStreaming(false)
         if (data.conversation_id) {
           setActiveId(data.conversation_id)
-          // Reload conversation list to get updated title
           await loadConversations()
         }
       },
@@ -159,24 +180,13 @@ export default function App() {
   }
 
   return (
-    <div className="h-screen bg-dark text-gray-100 flex overflow-hidden">
-      {/* Mobile hamburger button */}
+    <div className="h-screen bg-page text-text-primary flex overflow-hidden">
       <button
         onClick={() => setSidebarOpen(true)}
-        className="lg:hidden fixed top-3 left-3 z-40 p-2 rounded-xl bg-card/80 backdrop-blur-sm border border-gray-800 text-gray-400 hover:text-gray-200"
+        className="lg:hidden fixed top-3 left-3 z-40 p-2 rounded-xl bg-white border border-border text-text-secondary hover:text-text-primary shadow-sm"
       >
-        <svg
-          className="w-5 h-5"
-          fill="none"
-          stroke="currentColor"
-          viewBox="0 0 24 24"
-        >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth={2}
-            d="M4 6h16M4 12h16M4 18h16"
-          />
+        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
         </svg>
       </button>
 
@@ -197,6 +207,9 @@ export default function App() {
           isStreaming={isStreaming}
           onSend={handleSend}
           onStop={handleStop}
+          modelName={modelName}
+          activePreset={activePreset}
+          onSelectPreset={setActivePreset}
         />
       </main>
     </div>
