@@ -2,9 +2,9 @@
 FROM node:20-alpine AS build
 WORKDIR /app
 COPY package*.json ./
-RUN npm install
+RUN npm ci
 COPY . .
-RUN npm run build
+RUN chmod -R +x node_modules/.bin && npm run build
 
 # Stage 2: Serve
 FROM nginx:alpine
